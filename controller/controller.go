@@ -24,11 +24,6 @@ func goDotEnvInit() {
 	}
 }
 
-// var cstring string = goDotEnv("MongoDB_CString")
-
-const dbName = "ToDoApp"
-const colName = "TodoList"
-
 //collection object/instance
 var collection *mongo.Collection
 
@@ -36,7 +31,10 @@ var collection *mongo.Collection
 
 func init() {
 	goDotEnvInit()
+
 	connectionString := os.Getenv("MongoDB_CString")
+	dbName := os.Getenv("DB_NAME")
+	colName := os.Getenv("COL_NAME")
 
 	//client option
 	clientOption := options.Client().ApplyURI(connectionString)
