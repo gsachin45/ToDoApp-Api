@@ -17,6 +17,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// load env file
 func goDotEnvInit() {
 	err := godotenv.Load(".env")
 	if err != nil {
@@ -30,6 +31,7 @@ var collection *mongo.Collection
 //connect with mongoDB
 
 func init() {
+
 	goDotEnvInit()
 
 	connectionString := os.Getenv("MongoDB_CString")
@@ -139,7 +141,19 @@ func getAllTask() []primitive.M {
 	defer cur.Close(context.Background())
 	return tasks
 }
+func updateTask(task_id string, task model.ToDoList) {
 
+	id, _ := primitive.ObjectIDFromHex(task_id)
+	//task = "Task"
+	filter := bson.M{"_id": id}
+	update := bson.M{"$set": bson.M{"task": task.Task, "status": false}}
+
+	result, err := collection.UpdateOne(context.Background(), filter, update)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("modified count: ", result.ModifiedCount)
+}
 func GetAllTask(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/x-www-form-urlencode")
 	allTask := getAllTask()
@@ -173,6 +187,15 @@ func TaskCompleted(w http.ResponseWriter, r *http.Request) {
 	taskCompleted(params["id"])
 	json.NewEncoder(w).Encode(params["id"])
 
+}
+func UpadateTask(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/x-www-form-urlencode")
+	w.Header().Set("Allow-Control-Allow-Methods", "PUT")
+
+	params := mux.Vars(r)
+	var newtask model.ToDoList
+	_ = json.NewDecoder(r.Body).Decode(&newtask)
+	updateTask(params["id"], newtask)
 }
 func DeleteOneTask(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/x-www-form-urlencode")
